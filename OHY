@@ -1,0 +1,51 @@
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local LocalPlayer = Players.LocalPlayer
+
+-- 1. ตั้งค่า MaxHealth ฝั่ง Local
+local function applyLocalStats(character)
+	local humanoid = character:WaitForChild("Humanoid", 10)
+	if humanoid then
+		humanoid.MaxHealth = 1000
+		humanoid.Health = 1000
+	end
+end
+
+if LocalPlayer.Character then
+	applyLocalStats(LocalPlayer.Character)
+end
+LocalPlayer.CharacterAdded:Connect(applyLocalStats)
+
+-- 2. ระบบแสดงตำแหน่งผู้เล่นอื่น (Highlight ESP)
+local function createESP(player)
+	if player == LocalPlayer then return end
+
+	local function onCharacterAdded(character)
+		local rootPart = character:WaitForChild("HumanoidRootPart", 10)
+		if not rootPart then return end
+
+		if character:FindFirstChild("VoxelESP_Highlight") then
+			character.VoxelESP_Highlight:Destroy()
+		end
+
+		local highlight = Instance.new("Highlight")
+		highlight.Name = "VoxelESP_Highlight"
+		highlight.FillColor = Color3.fromRGB(255, 60, 60)
+		highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+		highlight.FillTransparency = 0.5
+		highlight.OutlineTransparency = 0
+		highlight.Adornee = character
+		highlight.Parent = character
+	end
+
+	if player.Character then
+		onCharacterAdded(player.Character)
+	end
+	player.CharacterAdded:Connect(onCharacterAdded)
+end
+
+for _, player in ipairs(Players:GetPlayers()) do
+	createESP(player)
+end
+Players.PlayerAdded:Connect(createESP)
